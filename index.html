@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BCMeinsAvenida">
+<link rel="manifest" href="manifest.json">
+<title>BCMeinsAvenida</title>
+<style>
+  :root {
+    --bg: #17181a;
+    --panel: #232427;
+    --panel-2: #2b2c30;
+    --borde: #3a3b40;
+    --texto: #f2f2f2;
+    --texto-tenue: #a8a9ad;
+    --azul: #1f6aa5;
+    --azul-hover: #195886;
+    --verde: #1a7a3c;
+    --verde-hover: #155f2e;
+    --naranja: #8a5a00;
+    --naranja-hover: #6f4900;
+    --rojo: #8a1f1f;
+    --gris-btn: #3a3b40;
+    --gris-btn-hover: #47484e;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--texto);
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    height: 100%;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    min-height: 100%;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  /* ---------- Cabecera ---------- */
+
+  #cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .marcador-equipo {
+    text-align: center;
+    min-width: 130px;
+  }
+
+  .marcador-equipo .nombre {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--texto-tenue);
+  }
+
+  .marcador-equipo .puntos {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  #centro-cabecera {
+    text-align: center;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  #lblCrono {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+
+  #lblCuarto {
+    font-size: 16px;
+    color: var(--texto-tenue);
+    margin-top: 2px;
+  }
+
+  #lblRacha {
+    margin-top: 6px;
+    min-height: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffb020;
+  }
+
+  /* ---------- Botones ---------- */
+
+  button {
+    font-family: inherit;
+    border: none;
+    border-radius: 9px;
+    color: white;
+    background: var(--gris-btn);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 44px;
+  }
+
+  button:active { transform: scale(0.96); }
+
+  .btn-azul { background: var(--azul); }
+  .btn-verde { background: var(--verde); }
+  .btn-naranja { background: var(--naranja); }
+  .btn-rojo { background: var(--rojo); }
+
+  #barra-controles {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  #barra-controles .separador { flex: 1; min-width: 8px; }
+
+  .grupo-cuartos { display: flex; gap: 4px; }
+  .grupo-cuartos button { width: 48px; padding: 10px 4px; }
+
+  /* ---------- Grid tablas ---------- */
+
+  #grid-principal {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 900px) {
+    #grid-principal { grid-template-columns: 1fr; }
+  }
+
+  .titulo-panel {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 2px 0 8px 2px;
+    color: var(--texto-tenue);
+  }
+
+  .tabla-scroll {
+    overflow: auto;
+    max-height: 42vh;
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #17181a;
+    color: white;
+    font-weight: 800;
+    padding: 10px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--borde);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 9px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--borde);
+    white-space: nowrap;
+  }
+
+  td.celda-nombre { text-align: left; font-weight: 600; }
+
+  tr.row-actual td { background: var(--azul); color: white; }
+  tr.row-descalificada td { background: var(--rojo); color: white; }
+
+  .celda-estado, .celda-faltas {
+    cursor: pointer;
+    font-weight: 800;
+  }
+
+  .celda-faltas { background: rgba(255,255,255,0.03); }
+
+  /* ---------- Tabs tramos/rachas ---------- */
+
+  #tabs-botones { display: flex; gap: 6px; margin-bottom: 8px; }
+
+  .tab-btn {
+    background: var(--gris-btn);
+    padding: 8px 14px;
+  }
+
+  .tab-btn.activo { background: var(--azul); }
+
+  .tab-panel { display: none; }
+  .tab-panel.activo { display: block; }
+
+  /* ---------- Marcador inferior ---------- */
+
+  #barra-marcador {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .bloque-equipo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .bloque-equipo .titulo { font-weight: 800; letter-spacing: 1px; }
+
+  .fila-botones { display: flex; gap: 6px; align-items: center; }
+
+  .fila-botones button { width: 56px; }
+
+  .btn-reb { width: auto !important; padding: 10px 14px; }
+
+  footer {
+    text-align: center;
+    color: var(--texto-tenue);
+    font-size: 12px;
+    padding: 4px 0 10px;
+  }
+</style>
+</head>
+<body>
+
+<noscript>
+  <div style="background:#8a1f1f;color:white;padding:16px;font-family:sans-serif;font-size:16px;">
+    JavaScript está desactivado o este archivo se está viendo en una vista previa (no en Safari).
+    Abre este archivo con "Compartir → Safari" para que la app funcione.
+  </div>
+</noscript>
+
+<div id="app">
+
+  <div class="panel" id="cabecera">
+    <div class="marcador-equipo">
+      <div class="nombre" id="lblLocal">LOCAL</div>
+      <div class="puntos" id="scoreLocal">0</div>
+    </div>
+
+    <div id="centro-cabecera">
+      <div id="lblCrono">10:00</div>
+      <div id="lblCuarto">1º CUARTO</div>
+      <div id="lblRacha"></div>
+    </div>
+
+    <div class="marcador-equipo">
+      <div class="nombre" id="lblVisitante">VISITANTE</div>
+      <div class="puntos" id="scoreVisitante">0</div>
+    </div>
+  </div>
+
+  <div class="panel" id="barra-controles">
+    <button class="btn-azul" id="btnInicio">▶ INICIO</button>
+    <button id="btnPausa">⏸ PAUSA</button>
+    <button id="btnTM">TIEMPO MUERTO</button>
+
+    <div class="separador"></div>
+
+    <div class="grupo-cuartos">
+      <button id="btn1">1º</button>
+      <button id="btn2">2º</button>
+      <button id="btn3">3º</button>
+      <button id="btn4">4º</button>
+      <button id="btnOT" style="width:60px;">OT</button>
+    </div>
+
+    <div class="separador"></div>
+
+    <button class="btn-verde" id="btnExportar">🏁 FIN / EXPORTAR</button>
+    <button class="btn-rojo" id="btnNuevo">🔄 NUEVO PARTIDO</button>
+  </div>
+
+  <div class="panel" id="barra-marcador">
+    <div class="bloque-equipo">
+      <div class="titulo">LOCAL</div>
+      <div class="fila-botones">
+        <button class="btn-azul" id="btnL1">+1</button>
+        <button class="btn-azul" id="btnL2">+2</button>
+        <button class="btn-azul" id="btnL3">+3</button>
+        <button class="btn-naranja btn-reb" id="btnRebL">+ REB.OF.</button>
+      </div>
+    </div>
+
+    <div class="bloque-equipo">
+      <div class="titulo">VISITANTE</div>
+      <div class="fila-botones">
+        <button class="btn-azul" id="btnV1">+1</button>
+        <button class="btn-azul" id="btnV2">+2</button>
+        <button class="btn-azul" id="btnV3">+3</button>
+        <button class="btn-naranja btn-reb" id="btnRebV">+ REB.OF.</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="grid-principal">
+
+    <div class="panel">
+      <div class="titulo-panel">PARCIALES</div>
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th>Cuarto</th><th>Local</th><th>Visitante</th></tr>
+          </thead>
+          <tbody id="tblParciales"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="titulo-panel">JUGADORAS &nbsp;<span style="font-weight:400;font-size:12px;">(toca Estado = entra/sale · toca Faltas = +1 falta)</span></div>
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Estado</th><th>Nº</th><th>Nombre</th>
+              <th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>OT</th><th>TOTAL</th><th>Faltas</th>
+            </tr>
+          </thead>
+          <tbody id="tblJugadoras"><tr><td colspan="10">Cargando jugadoras… Si este mensaje no desaparece, este archivo no se está abriendo dentro de Safari (por ejemplo, se está viendo como vista previa de Archivos). Ábrelo con "Compartir → Safari".</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="panel">
+    <div id="tabs-botones">
+      <button class="tab-btn activo" id="tabBtnTramos">TRAMOS</button>
+      <button class="tab-btn" id="tabBtnRachas">RACHAS (PARCIALES)</button>
+    </div>
+
+    <div class="tab-panel activo" id="tabTramos">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Nº</th><th>Cuarto</th><th>Inicio</th><th>Fin</th><th>Tiempo</th>
+              <th>Quinteto</th><th>Local</th><th>Visitante</th><th>+/-</th>
+            </tr>
+          </thead>
+          <tbody id="tblTramos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tabRachas">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Nº</th><th>Cuarto</th><th>Equipo</th><th>Parcial</th><th>Quinteto</th>
+              <th>Reb.Of. Local</th><th>Reb.Of. Visit.</th>
+            </tr>
+          </thead>
+          <tbody id="tblRachas"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>BCMeinsAvenida · funciona sin conexión · datos guardados en este iPad</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const FALTAS_MAXIMAS = 5;
+  const PUNTOS_MINIMOS_RACHA = 4;
+  const CLAVE_ALMACENAMIENTO = "basketcontrol_estado_v1";
+
+  const NOMBRES_INICIALES = [
+    [1, "CLAUDIA SORIANO"],
+    [3, "STEPHANIE MAWULI"],
+    [5, "JUGADORA JOVEN"],
+    [7, "REBEKA MIKULASIKOVA"],
+    [8, "MARTA CANELLA"],
+    [9, "SARA ROUMY"],
+    [10, "INÉS SANTIBAÑEZ"],
+    [19, "MARTINA FASSINA"],
+    [22, "EMMA JOHANSSON"],
+    [58, "DAVINIA ÁNGEL"]
+  ];
+
+  let partido = estadoInicial();
+  let timerId = null;
+
+  function estadoInicial() {
+    return {
+      local: { nombre: "LOCAL", marcador: 0, parciales: [0, 0, 0, 0, 0], jugadoras: [] },
+      visitante: { nombre: "VISITANTE", marcador: 0, parciales: [0, 0, 0, 0, 0] },
+      cuarto: 1,
+      segundos: 600,
+      enJuego: false,
+      tramos: [],
+      tramoActual: null,
+      rachaEquipo: null,
+      rachaPuntos: 0,
+      rachaRebotesLocal: 0,
+      rachaRebotesVisitante: 0,
+      rachas: []
+    };
+  }
+
+  function nuevaJugadora(dorsal, nombre) {
+    return { dorsal: dorsal, nombre: nombre, enPista: false, tiempos: [0, 0, 0, 0, 0], faltas: 0 };
+  }
+
+  function inicializarJugadoras() {
+    partido.local.jugadoras = NOMBRES_INICIALES.map(function (par) {
+      return nuevaJugadora(par[0], par[1]);
+    });
+  }
+
+  // =====================================================
+  // CRONÓMETRO
+  // =====================================================
+
+  function iniciar() {
+    if (partido.enJuego) return;
+    partido.enJuego = true;
+    tick();
+  }
+
+  function pausar() {
+    partido.enJuego = false;
+    if (timerId) { clearTimeout(timerId); timerId = null; }
+    guardarEstado();
+    render();
+  }
+
+  function tiempoMuerto() {
+    pausar();
+    cerrarTramo();
+    abrirTramo();
+    guardarEstado();
+    render();
+  }
+
+  function reiniciarCuarto(cuarto) {
+    cerrarTramo();
+    cerrarRacha();
+    partido.cuarto = cuarto;
+    partido.segundos = (cuarto === 5) ? 300 : 600;
+    abrirTramo();
+    guardarEstado();
+    render();
+  }
+
+  function avanzarSegundo() {
+    if (!partido.enJuego) return false;
+    if (partido.segundos === 0) return false;
+
+    partido.segundos -= 1;
+
+    const idx = partido.cuarto - 1;
+
+    partido.local.jugadoras.forEach(function (j) {
+      if (j.enPista) j.tiempos[idx] += 1;
+    });
+
+    return true;
+  }
+
+  function finCuarto() {
+    partido.enJuego = false;
+    cerrarTramo();
+    cerrarRacha();
+  }
+
+  function tick() {
+    if (!partido.enJuego) return;
+
+    if (avanzarSegundo()) {
+      guardarEstado();
+      render();
+      timerId = setTimeout(tick, 1000);
+    } else {
+      finCuarto();
+      guardarEstado();
+      render();
+    }
+  }
+
+  // =====================================================
+  // MARCADOR
+  // =====================================================
+
+  function sumarLocal(puntos) {
+    partido.local.marcador += puntos;
+    partido.local.parciales[partido.cuarto - 1] += puntos;
+    procesarRacha("local", puntos);
+    guardarEstado();
+    render();
+  }
+
+  function sumarVisitante(puntos) {
+    partido.visitante.marcador += puntos;
+    partido.visitante.parciales[partido.cuarto - 1] += puntos;
+    procesarRacha("visitante", puntos);
+    guardarEstado();
+    render();
+  }
+
+  // =====================================================
+  // JUGADORAS
+  // =====================================================
+
+  function jugadorasEnPista() {
+    return partido.local.jugadoras.filter(function (j) { return j.enPista; });
+  }
+
+  function cambiarEstadoJugadora(jugadora) {
+    if (jugadora.enPista) {
+      cerrarTramo();
+      jugadora.enPista = false;
+      abrirTramo();
+      return true;
+    }
+
+    if (jugadorasEnPista().length >= 5) return false;
+
+    cerrarTramo();
+    jugadora.enPista = true;
+    abrirTramo();
+    return true;
+  }
+
+  function registrarFalta(jugadora) {
+    if (jugadora.faltas < FALTAS_MAXIMAS) jugadora.faltas += 1;
+    guardarEstado();
+    renderJugadoras();
+  }
+
+  // =====================================================
+  // QUINTETO
+  // =====================================================
+
+  function quintetoActual() {
+    return jugadorasEnPista()
+      .map(function (j) { return j.dorsal; })
+      .sort(function (a, b) { return a - b; });
+  }
+
+  // =====================================================
+  // TRAMOS
+  // =====================================================
+
+  function abrirTramo() {
+    const quinteto = quintetoActual();
+
+    if (quinteto.length !== 5) {
+      partido.tramoActual = null;
+      return;
+    }
+
+    partido.tramoActual = {
+      cuarto: partido.cuarto,
+      inicio: partido.segundos,
+      fin: partido.segundos,
+      quinteto: quinteto,
+      localInicio: partido.local.marcador,
+      visitanteInicio: partido.visitante.marcador,
+      localFin: partido.local.marcador,
+      visitanteFin: partido.visitante.marcador
+    };
+  }
+
+  function cerrarTramo() {
+    if (!partido.tramoActual) return;
+
+    const t = partido.tramoActual;
+
+    t.fin = partido.segundos;
+    t.localFin = partido.local.marcador;
+    t.visitanteFin = partido.visitante.marcador;
+
+    partido.tramos.push(t);
+    partido.tramoActual = null;
+  }
+
+  function tramoParcialLocal(t) { return t.localFin - t.localInicio; }
+  function tramoParcialVisitante(t) { return t.visitanteFin - t.visitanteInicio; }
+  function tramoDiferencia(t) { return tramoParcialLocal(t) - tramoParcialVisitante(t); }
+  function tramoDuracion(t) { return t.inicio - t.fin; }
+
+  // =====================================================
+  // RACHAS (PARCIALES x-0)
+  // =====================================================
+
+  function procesarRacha(equipo, puntos) {
+    if (partido.rachaEquipo === null) {
+      partido.rachaEquipo = equipo;
+      partido.rachaPuntos = puntos;
+      partido.rachaRebotesLocal = 0;
+      partido.rachaRebotesVisitante = 0;
+      return;
+    }
+
+    if (partido.rachaEquipo === equipo) {
+      partido.rachaPuntos += puntos;
+      return;
+    }
+
+    cerrarRacha();
+
+    partido.rachaEquipo = equipo;
+    partido.rachaPuntos = puntos;
+    partido.rachaRebotesLocal = 0;
+    partido.rachaRebotesVisitante = 0;
+  }
+
+  function registrarReboteLocal() {
+    partido.rachaRebotesLocal += 1;
+    guardarEstado();
+    renderRachaActual();
+  }
+
+  function registrarReboteVisitante() {
+    partido.rachaRebotesVisitante += 1;
+    guardarEstado();
+    renderRachaActual();
+  }
+
+  function cerrarRacha() {
+    if (partido.rachaEquipo === null) return;
+
+    if (partido.rachaPuntos >= PUNTOS_MINIMOS_RACHA) {
+      partido.rachas.push({
+        cuarto: partido.cuarto,
+        equipo: partido.rachaEquipo,
+        puntos: partido.rachaPuntos,
+        quinteto: quintetoActual(),
+        rebotesLocal: partido.rachaRebotesLocal,
+        rebotesVisitante: partido.rachaRebotesVisitante
+      });
+    }
+
+    partido.rachaEquipo = null;
+    partido.rachaPuntos = 0;
+    partido.rachaRebotesLocal = 0;
+    partido.rachaRebotesVisitante = 0;
+  }
+
+  function cerrarSegmentosActuales() {
+    cerrarTramo();
+    abrirTramo();
+    cerrarRacha();
+  }
+
+  // =====================================================
+  // UTILIDADES
+  // =====================================================
+
+  function formatoTiempo(segundos) {
+    const m = Math.floor(segundos / 60);
+    const s = segundos % 60;
+    return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  }
+
+  // =====================================================
+  // PERSISTENCIA (localStorage — 100% en el propio iPad)
+  // =====================================================
+
+  function guardarEstado() {
+    try {
+      localStorage.setItem(CLAVE_ALMACENAMIENTO, JSON.stringify(partido));
+    } catch (e) {
+      // Sin almacenamiento disponible: seguimos funcionando solo en memoria
+    }
+  }
+
+  function cargarEstado() {
+    try {
+      const guardado = localStorage.getItem(CLAVE_ALMACENAMIENTO);
+      if (guardado) {
+        const datos = JSON.parse(guardado);
+        Object.assign(partido, datos);
+        partido.enJuego = false;
+      }
+    } catch (e) {
+      // Ignorar y arrancar de cero
+    }
+  }
+
+  function nuevoPartido() {
+    if (!confirm("¿Seguro que quieres empezar un partido nuevo? Se borrarán todos los datos actuales.")) return;
+
+    try { localStorage.removeItem(CLAVE_ALMACENAMIENTO); } catch (e) { /* ignorar */ }
+
+    if (timerId) { clearTimeout(timerId); timerId = null; }
+
+    partido = estadoInicial();
+    inicializarJugadoras();
+    guardarEstado();
+    render();
+  }
+
+  // =====================================================
+  // EXPORTACIÓN (CSV — se abre directamente con Excel)
+  // =====================================================
+
+  function csvEscape(valor) {
+    const texto = String(valor === undefined || valor === null ? "" : valor);
+    if (/[",;\n]/.test(texto)) return '"' + texto.replace(/"/g, '""') + '"';
+    return texto;
+  }
+
+  function filasACSV(filas) {
+    return filas.map(function (fila) {
+      return fila.map(csvEscape).join(",");
+    }).join("\r\n");
+  }
+
+  function generarCSVJugadoras() {
+    const filas = [["Nº", "Nombre", "1º", "2º", "3º", "4º", "OT", "TOTAL", "Faltas"]];
+
+    [...partido.local.jugadoras]
+      .sort(function (a, b) { return a.dorsal - b.dorsal; })
+      .forEach(function (j) {
+        const total = j.tiempos.reduce(function (a, b) { return a + b; }, 0);
+        filas.push([
+          j.dorsal, j.nombre,
+          formatoTiempo(j.tiempos[0]), formatoTiempo(j.tiempos[1]),
+          formatoTiempo(j.tiempos[2]), formatoTiempo(j.tiempos[3]),
+          formatoTiempo(j.tiempos[4]), formatoTiempo(total),
+          j.faltas
+        ]);
+      });
+
+    return filasACSV(filas);
+  }
+
+  function generarCSVTramos() {
+    const filas = [["Nº", "Cuarto", "Inicio", "Fin", "Tiempo", "Quinteto", "Local", "Visitante", "+/-"]];
+
+    partido.tramos.forEach(function (t, i) {
+      const cuarto = (t.cuarto === 5) ? "OT" : t.cuarto;
+      filas.push([
+        i + 1, cuarto,
+        formatoTiempo(t.inicio), formatoTiempo(t.fin), formatoTiempo(tramoDuracion(t)),
+        t.quinteto.join(" - "),
+        tramoParcialLocal(t), tramoParcialVisitante(t), tramoDiferencia(t)
+      ]);
+    });
+
+    return filasACSV(filas);
+  }
+
+  function generarCSVRachas() {
+    const filas = [["Nº", "Cuarto", "Equipo", "Parcial", "Quinteto", "Reb.Of. Local", "Reb.Of. Visitante"]];
+
+    partido.rachas.forEach(function (r, i) {
+      const equipo = (r.equipo === "local") ? "LOCAL" : "VISITANTE";
+      const cuarto = (r.cuarto === 5) ? "OT" : r.cuarto;
+      filas.push([i + 1, cuarto, equipo, r.puntos + "-0", r.quinteto.join(" - "), r.rebotesLocal, r.rebotesVisitante]);
+    });
+
+    return filasACSV(filas);
+  }
+
+  function descargarCSV(contenido, nombre) {
+    const blob = new Blob(["﻿" + contenido], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  function exportarDatos() {
+    cerrarSegmentosActuales();
+    guardarEstado();
+    render();
+
+    const marca = new Date().toISOString().slice(0, 16).replace("T", "_").replace(":", "");
+
+    descargarCSV(generarCSVJugadoras(), "Partido_Jugadoras_" + marca + ".csv");
+    setTimeout(function () { descargarCSV(generarCSVTramos(), "Partido_Tramos_" + marca + ".csv"); }, 400);
+    setTimeout(function () { descargarCSV(generarCSVRachas(), "Partido_Rachas_" + marca + ".csv"); }, 800);
+  }
+
+  // =====================================================
+  // RENDER
+  // =====================================================
+
+  function renderMarcador() {
+    document.getElementById("lblLocal").textContent = partido.local.nombre;
+    document.getElementById("scoreLocal").textContent = partido.local.marcador;
+    document.getElementById("lblVisitante").textContent = partido.visitante.nombre;
+    document.getElementById("scoreVisitante").textContent = partido.visitante.marcador;
+    document.getElementById("lblCrono").textContent = formatoTiempo(partido.segundos);
+    document.getElementById("lblCuarto").textContent = (partido.cuarto === 5) ? "PRÓRROGA" : (partido.cuarto + "º CUARTO");
+  }
+
+  function renderRachaActual() {
+    const el = document.getElementById("lblRacha");
+
+    if (partido.rachaEquipo && partido.rachaPuntos > 0) {
+      const equipo = (partido.rachaEquipo === "local") ? "LOCAL" : "VISITANTE";
+      el.textContent = "Racha " + equipo + ": " + partido.rachaPuntos + "-0  (Reb.Of. Local: " +
+        partido.rachaRebotesLocal + " - Reb.Of. Visit.: " + partido.rachaRebotesVisitante + ")";
+    } else {
+      el.textContent = "";
+    }
+  }
+
+  function renderParciales() {
+    const nombres = ["1º", "2º", "3º", "4º", "OT"];
+
+    document.getElementById("tblParciales").innerHTML = nombres.map(function (n, i) {
+      const claseFila = ((i + 1) === partido.cuarto) ? "row-actual" : "";
+      return "<tr class=\"" + claseFila + "\"><td>" + n + "</td><td>" +
+        partido.local.parciales[i] + "</td><td>" + partido.visitante.parciales[i] + "</td></tr>";
+    }).join("");
+  }
+
+  function renderJugadoras() {
+    const ordenadas = [...partido.local.jugadoras].sort(function (a, b) { return a.dorsal - b.dorsal; });
+
+    document.getElementById("tblJugadoras").innerHTML = ordenadas.map(function (j) {
+      const estado = j.enPista ? "🟢" : "";
+      const total = j.tiempos.reduce(function (a, b) { return a + b; }, 0);
+      const claseFila = (j.faltas >= FALTAS_MAXIMAS) ? "row-descalificada" : "";
+
+      return "<tr class=\"" + claseFila + "\" data-dorsal=\"" + j.dorsal + "\">" +
+        "<td class=\"celda-estado\" data-accion=\"estado\">" + estado + "</td>" +
+        "<td>" + j.dorsal + "</td>" +
+        "<td class=\"celda-nombre\">" + j.nombre + "</td>" +
+        "<td>" + formatoTiempo(j.tiempos[0]) + "</td>" +
+        "<td>" + formatoTiempo(j.tiempos[1]) + "</td>" +
+        "<td>" + formatoTiempo(j.tiempos[2]) + "</td>" +
+        "<td>" + formatoTiempo(j.tiempos[3]) + "</td>" +
+        "<td>" + formatoTiempo(j.tiempos[4]) + "</td>" +
+        "<td>" + formatoTiempo(total) + "</td>" +
+        "<td class=\"celda-faltas\" data-accion=\"falta\">" + j.faltas + "</td>" +
+        "</tr>";
+    }).join("");
+  }
+
+  function renderTramos() {
+    document.getElementById("tblTramos").innerHTML = partido.tramos.map(function (t, i) {
+      const cuarto = (t.cuarto === 5) ? "OT" : t.cuarto;
+      return "<tr><td>" + (i + 1) + "</td><td>" + cuarto + "</td>" +
+        "<td>" + formatoTiempo(t.inicio) + "</td><td>" + formatoTiempo(t.fin) + "</td>" +
+        "<td>" + formatoTiempo(tramoDuracion(t)) + "</td>" +
+        "<td>" + t.quinteto.join(" - ") + "</td>" +
+        "<td>" + tramoParcialLocal(t) + "</td><td>" + tramoParcialVisitante(t) + "</td>" +
+        "<td>" + tramoDiferencia(t) + "</td></tr>";
+    }).join("");
+  }
+
+  function renderRachas() {
+    document.getElementById("tblRachas").innerHTML = partido.rachas.map(function (r, i) {
+      const equipo = (r.equipo === "local") ? "LOCAL" : "VISITANTE";
+      const cuarto = (r.cuarto === 5) ? "OT" : r.cuarto;
+      return "<tr><td>" + (i + 1) + "</td><td>" + cuarto + "</td><td>" + equipo + "</td>" +
+        "<td>" + r.puntos + "-0</td><td>" + r.quinteto.join(" - ") + "</td>" +
+        "<td>" + r.rebotesLocal + "</td><td>" + r.rebotesVisitante + "</td></tr>";
+    }).join("");
+  }
+
+  function render() {
+    renderMarcador();
+    renderRachaActual();
+    renderParciales();
+    renderJugadoras();
+    renderTramos();
+    renderRachas();
+  }
+
+  // =====================================================
+  // EVENTOS
+  // =====================================================
+
+  function conectarEventos() {
+    document.getElementById("btnInicio").addEventListener("click", iniciar);
+    document.getElementById("btnPausa").addEventListener("click", pausar);
+    document.getElementById("btnTM").addEventListener("click", tiempoMuerto);
+
+    document.getElementById("btn1").addEventListener("click", function () { reiniciarCuarto(1); });
+    document.getElementById("btn2").addEventListener("click", function () { reiniciarCuarto(2); });
+    document.getElementById("btn3").addEventListener("click", function () { reiniciarCuarto(3); });
+    document.getElementById("btn4").addEventListener("click", function () { reiniciarCuarto(4); });
+    document.getElementById("btnOT").addEventListener("click", function () { reiniciarCuarto(5); });
+
+    document.getElementById("btnL1").addEventListener("click", function () { sumarLocal(1); });
+    document.getElementById("btnL2").addEventListener("click", function () { sumarLocal(2); });
+    document.getElementById("btnL3").addEventListener("click", function () { sumarLocal(3); });
+    document.getElementById("btnV1").addEventListener("click", function () { sumarVisitante(1); });
+    document.getElementById("btnV2").addEventListener("click", function () { sumarVisitante(2); });
+    document.getElementById("btnV3").addEventListener("click", function () { sumarVisitante(3); });
+
+    document.getElementById("btnRebL").addEventListener("click", registrarReboteLocal);
+    document.getElementById("btnRebV").addEventListener("click", registrarReboteVisitante);
+
+    document.getElementById("btnExportar").addEventListener("click", exportarDatos);
+    document.getElementById("btnNuevo").addEventListener("click", nuevoPartido);
+
+    document.getElementById("tblJugadoras").addEventListener("click", function (e) {
+      const celda = e.target.closest("[data-accion]");
+      if (!celda) return;
+
+      const fila = celda.closest("tr");
+      const dorsal = Number(fila.getAttribute("data-dorsal"));
+      const jugadora = partido.local.jugadoras.find(function (j) { return j.dorsal === dorsal; });
+      if (!jugadora) return;
+
+      if (celda.getAttribute("data-accion") === "estado") {
+        cambiarEstadoJugadora(jugadora);
+        guardarEstado();
+        render();
+      } else if (celda.getAttribute("data-accion") === "falta") {
+        registrarFalta(jugadora);
+      }
+    });
+
+    document.getElementById("tabBtnTramos").addEventListener("click", function () {
+      document.getElementById("tabBtnTramos").classList.add("activo");
+      document.getElementById("tabBtnRachas").classList.remove("activo");
+      document.getElementById("tabTramos").classList.add("activo");
+      document.getElementById("tabRachas").classList.remove("activo");
+    });
+
+    document.getElementById("tabBtnRachas").addEventListener("click", function () {
+      document.getElementById("tabBtnRachas").classList.add("activo");
+      document.getElementById("tabBtnTramos").classList.remove("activo");
+      document.getElementById("tabRachas").classList.add("activo");
+      document.getElementById("tabTramos").classList.remove("activo");
+    });
+  }
+
+  // =====================================================
+  // ARRANQUE
+  // =====================================================
+
+  function iniciarApp() {
+    cargarEstado();
+
+    if (!partido.local.jugadoras || partido.local.jugadoras.length === 0) {
+      inicializarJugadoras();
+    }
+
+    conectarEventos();
+    render();
+  }
+
+  window.addEventListener("DOMContentLoaded", iniciarApp);
+
+  // Service Worker: cachea la app para que funcione sin conexión
+  // tras la primera visita.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {
+        // Sin service worker disponible: la app sigue funcionando
+        // online, solo sin caché offline explícita.
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

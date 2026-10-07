@@ -1,0 +1,9 @@
+{
+  "name": "BCMeinsAvenida",
+  "short_name": "BCMeinsAvenida",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#17181a",
+  "theme_color": "#17181a"
+}
